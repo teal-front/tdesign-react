@@ -41,6 +41,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
     autoUpload = true,
     sizeLimit,
     formatResponse,
+    allowUploadDuplicateFile = false,
     beforeUpload,
     onProgress,
     onSuccess,
@@ -312,25 +313,25 @@ const Upload = forwardRef((props: UploadProps, ref) => {
     return Promise.resolve(true);
   };
 
-  const uploadFiles = () => {
-    const { length } = fileList;
-    let count = 0;
+  const isAllowUploadAsDuplicateFile = (uploadFile) =>
+    allowUploadDuplicateFile || toUploadFiles.find((file) => file.name === uploadFile.name);
+
+  const uploadFiles = async () => {
     const newFileList = [];
-    fileList.forEach((uploadFile) => {
-      handleBeforeUpload(uploadFile).then((canUpload) => {
-        count += 1;
-        if (canUpload) {
-          newFileList.push(uploadFile);
-          if (autoUpload) {
-            upload(uploadFile);
-          }
-        }
-        if (count === length) {
-          setToUploadFiles([...new Set([...toUploadFiles, ...newFileList])]);
-          onChange?.(newFileList, { trigger: 'remove' });
-        }
-      });
-    });
+    const uploadPromise = async (uploadFile) => {
+      if (!isAllowUploadAsDuplicateFile(uploadFile)) return;
+
+      const canUpload = await handleBeforeUpload(uploadFile);
+      if (!canUpload) return;
+
+      newFileList.push(uploadFile);
+      if (autoUpload) {
+        upload(uploadFile);
+      }
+    };
+    await Promise.all(fileList.map(uploadPromise));
+    setToUploadFiles([...new Set([...toUploadFiles, ...newFileList])]);
+    onChange?.(newFileList, { trigger: 'remove' });
   };
 
   const generateUploadFiles = (files: FileList): TdUploadFile[] => {
@@ -528,6 +529,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
           showUploadProgress={showUploadProgress}
           upload={multipleUpload}
           cancel={cancelUpload}
+          allowUploadDuplicateFile={allowUploadDuplicateFile}
           display={theme as 'image-flow' | 'file-flow'}
           onImgPreview={handlePreviewImg}
           onChange={handleDragChange}

@@ -1,4 +1,4 @@
-import React, { DragEvent, MouseEvent, ReactNode, useCallback, useState } from 'react';
+import React, { DragEvent, MouseEvent, ReactNode, useCallback, useEffect, useState } from 'react';
 import classNames from 'classnames';
 import useConfig from '../../../_util/useConfig';
 import { useLocaleReceiver } from '../../../locale/LocalReceiver';
@@ -25,19 +25,21 @@ export interface FlowListProps {
   remove: (ctx: FlowRemoveContext) => void;
   upload: (files: UploadFile[], e: MouseEvent) => void;
   cancel: (e: MouseEvent) => void;
+  allowUploadDuplicateFile?: boolean;
   onImgPreview: (file: UploadFile, e: MouseEvent) => void;
   onChange: (files: FileList) => void;
   onDragenter: (e: React.DragEvent) => void;
   onDragleave: (e: React.DragEvent) => void;
 }
 
-const Index: React.FC<FlowListProps> = (props) => {
+const FlowList: React.FC<FlowListProps> = (props) => {
   const {
     files: listFiles,
     toUploadFiles = [],
     showUploadProgress = false,
     placeholder,
     display,
+    allowUploadDuplicateFile,
     onImgPreview,
     remove,
     upload,
@@ -60,6 +62,21 @@ const Index: React.FC<FlowListProps> = (props) => {
   let uploadText = failedList.length ? t(triggerUploadText.reupload) : t(triggerUploadText.normal);
   if (isUploading) uploadText = t(progress.uploadingText);
 
+  useEffect(() => {
+    const list: Array<UploadFile> = [];
+    toUploadFiles.forEach((item) => {
+      // 判断是否需要过滤重复文件
+      if (!allowUploadDuplicateFile) {
+        const r = listFiles.filter((t) => t.name === item.name);
+        if (!r.length) {
+          list.push(item);
+        }
+      } else {
+        list.push(item);
+      }
+    });
+    console.log(list);
+  }, [allowUploadDuplicateFile, toUploadFiles, listFiles]);
   const handleDrop = (event: DragEvent) => {
     event.preventDefault();
     onChange?.(event.dataTransfer.files);
@@ -142,4 +159,4 @@ const Index: React.FC<FlowListProps> = (props) => {
   );
 };
 
-export default Index;
+export default FlowList;
