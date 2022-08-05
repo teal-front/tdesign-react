@@ -39,7 +39,7 @@ const FormatInputs = (props) => {
     };
   };
 
-  // 更新modelValue
+  // 更新 modelValue
   const updateModelValue = () => {
     const values: any = getFormatColorMap('encode')[format];
     values.a = Math.round(color.alpha * 100);
@@ -91,6 +91,7 @@ const FormatInputs = (props) => {
           value: formatValue.current[config.key],
           align: 'center',
           disabled,
+          size: 'small',
           onBlur: (v: string) => handleInputChange(config.key, v),
           onEnter: (v: string) => handleInputChange(config.key, v),
         };

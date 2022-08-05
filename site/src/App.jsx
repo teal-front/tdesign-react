@@ -93,7 +93,7 @@ function Components() {
   }, [location]);
 
   return (
-    <ConfigProvider /* globalConfig={{ locale, animation: { exclude: ['ripple'] }}} */>
+    <ConfigProvider /* globalConfig={{ animation: { exclude: ['ripple'] }}} */>
       <td-doc-layout>
         <td-header ref={tdHeaderRef} slot="header">
           <td-doc-search slot="search" ref={tdDocSearch} />
@@ -111,7 +111,7 @@ function Components() {
           <td-doc-footer slot="doc-footer"></td-doc-footer>
         </td-doc-content>
       </td-doc-layout>
-      <tdesign-theme-generator />
+      <td-theme-generator />
     </ConfigProvider>
   );
 }

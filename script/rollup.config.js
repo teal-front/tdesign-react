@@ -13,6 +13,7 @@ import multiInput from 'rollup-plugin-multi-input';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import staticImport from 'rollup-plugin-static-import';
 import ignoreImport from 'rollup-plugin-ignore-import';
+import { resolve } from 'path';
 
 import pkg from '../package.json';
 
@@ -53,7 +54,7 @@ const getPlugins = ({
       jsx: 'transform',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
-      tsconfig: 'tsconfig.json',
+      tsconfig: resolve(__dirname, '../tsconfig.build.json'),
     }),
     babel({
       babelHelpers: 'runtime',
@@ -86,7 +87,7 @@ const getPlugins = ({
       }),
       ignoreImport({
         include: ['src/*/style/*', 'src/*/*/style/*'],
-        body: 'import "./style/css.js";',
+        body: 'import "./css.js";',
       }),
     );
   } else if (ignoreLess) {
@@ -98,7 +99,7 @@ const getPlugins = ({
       }),
       ignoreImport({
         include: ['src/*/style/*'],
-        body: 'import "./style/index.js";',
+        body: 'import "./index.js";',
       }),
     );
   }
@@ -228,4 +229,13 @@ const umdMinConfig = {
   },
 };
 
-export default [cssConfig, libConfig, esConfig, esmConfig, umdConfig, umdMinConfig];
+// 单独导出 reset.css 到 dist 目录，兼容旧版本样式
+const resetCss = {
+  input: 'src/_common/style/web/_reset.less',
+  output: {
+    file: 'dist/reset.css',
+  },
+  plugins: [postcss({ extract: true })],
+};
+
+export default [cssConfig, libConfig, esConfig, esmConfig, umdConfig, umdMinConfig, resetCss];

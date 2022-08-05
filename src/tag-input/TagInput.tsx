@@ -1,8 +1,9 @@
 import React, { CompositionEvent, KeyboardEvent, useRef, useImperativeHandle, forwardRef, MouseEvent } from 'react';
-import { CloseCircleFilledIcon } from 'tdesign-icons-react';
+import { CloseCircleFilledIcon as TdCloseCircleFilledIcon } from 'tdesign-icons-react';
 import isFunction from 'lodash/isFunction';
 import classnames from 'classnames';
-import useConfig from '../_util/useConfig';
+import useConfig from '../hooks/useConfig';
+import useGlobalIcon from '../hooks/useGlobalIcon';
 import useDragSorter from '../_util/useDragSorter';
 import TInput, { InputValue } from '../input';
 import { TdTagInputProps } from './type';
@@ -17,6 +18,9 @@ export interface TagInputProps extends TdTagInputProps, StyledProps {}
 
 const TagInput = forwardRef((props: TagInputProps, ref) => {
   const { classPrefix: prefix } = useConfig();
+  const { CloseCircleFilledIcon } = useGlobalIcon({
+    CloseCircleFilledIcon: TdCloseCircleFilledIcon,
+  });
 
   const {
     excessTagsDisplayType,
@@ -88,7 +92,7 @@ const TagInput = forwardRef((props: TagInputProps, ref) => {
   };
 
   const onInnerClick = (context: { e: MouseEvent<HTMLDivElement> }) => {
-    (tagInputRef.current as any).inputElement.focus();
+    (tagInputRef.current as any).inputElement?.focus?.();
     onClick?.(context);
   };
 
@@ -122,7 +126,6 @@ const TagInput = forwardRef((props: TagInputProps, ref) => {
   return (
     <TInput
       ref={tagInputRef}
-      {...inputProps}
       value={tInputValue}
       onChange={(val, context) => {
         setTInputValue(val, { ...context, trigger: 'input' });
@@ -140,6 +143,8 @@ const TagInput = forwardRef((props: TagInputProps, ref) => {
       placeholder={tagInputPlaceholder}
       suffix={suffix}
       suffixIcon={suffixIconNode}
+      showInput={!inputProps?.readonly || !tagValue || !tagValue?.length}
+      keepWrapperWidth={true}
       onPaste={onPaste}
       onClick={onInnerClick}
       onEnter={onInputEnter}
@@ -160,6 +165,7 @@ const TagInput = forwardRef((props: TagInputProps, ref) => {
       }}
       onCompositionstart={onInputCompositionstart}
       onCompositionend={onInputCompositionend}
+      {...inputProps}
     />
   );
 });

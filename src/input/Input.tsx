@@ -1,9 +1,14 @@
 import React, { useState, useRef, useImperativeHandle, useEffect } from 'react';
 import classNames from 'classnames';
-import { CloseCircleFilledIcon, BrowseOffIcon, BrowseIcon } from 'tdesign-icons-react';
+import {
+  BrowseIcon as TdBrowseIcon,
+  BrowseOffIcon as TdBrowseOffIcon,
+  CloseCircleFilledIcon as TdCloseCircleFilledIcon,
+} from 'tdesign-icons-react';
 import isFunction from 'lodash/isFunction';
 import forwardRefWithStatics from '../_util/forwardRefWithStatics';
-import useConfig from '../_util/useConfig';
+import useConfig from '../hooks/useConfig';
+import useGlobalIcon from '../hooks/useGlobalIcon';
 import { getCharacterLength } from '../_util/helper';
 import { TdInputProps } from './type';
 import { StyledProps, TNode } from '../common';
@@ -12,7 +17,10 @@ import useControlled from '../hooks/useControlled';
 import { useLocaleReceiver } from '../locale/LocalReceiver';
 import { inputDefaultProps } from './defaultProps';
 
-export interface InputProps extends TdInputProps, StyledProps {}
+export interface InputProps extends TdInputProps, StyledProps {
+  showInput?: boolean; // 控制透传readonly同时是否展示input 默认保留 因为正常Input需要撑开宽度
+  keepWrapperWidth?: boolean; // 控制透传autoWidth之后是否容器宽度也自适应 多选等组件需要用到自适应但也需要保留宽度
+}
 
 export interface InputRefInterface extends React.RefObject<unknown> {
   currentElement: HTMLDivElement;
@@ -42,6 +50,11 @@ const Input = forwardRefWithStatics(
   (props: InputProps, ref) => {
     // 国际化文本初始化
     const [local, t] = useLocaleReceiver('input');
+    const { BrowseIcon, BrowseOffIcon, CloseCircleFilledIcon } = useGlobalIcon({
+      BrowseIcon: TdBrowseIcon,
+      BrowseOffIcon: TdBrowseOffIcon,
+      CloseCircleFilledIcon: TdCloseCircleFilledIcon,
+    });
     const {
       type,
       autoWidth,
@@ -65,6 +78,8 @@ const Input = forwardRefWithStatics(
       readonly,
       label,
       suffix,
+      showInput = true,
+      keepWrapperWidth,
       format,
       onClick,
       onClear,
@@ -96,7 +111,7 @@ const Input = forwardRefWithStatics(
     const [isFocused, toggleIsFocused] = useState(false);
     const [renderType, setRenderType] = useState(type);
 
-    const [composingRefValue, setComposingValue] = useState<string>('');
+    const [composingValue, setComposingValue] = useState<string>('');
     const isShowClearIcon = ((clearable && value && !disabled) || showClearIconOnEmpty) && isHover;
 
     const prefixIconContent = renderIcon(classPrefix, 'prefix', prefixIcon);
@@ -120,8 +135,9 @@ const Input = forwardRefWithStatics(
 
     useEffect(() => {
       if (!autoWidth) return;
-      inputRef.current.style.width = `${inputPreRef.current.offsetWidth}px`;
-    }, [autoWidth, value, placeholder]);
+      if (inputPreRef.current?.offsetWidth === 0) return;
+      if (inputRef.current) inputRef.current.style.width = `${inputPreRef.current?.offsetWidth}px`;
+    }, [autoWidth, value, placeholder, inputRef]);
 
     useEffect(() => {
       setRenderType(type);
@@ -133,10 +149,10 @@ const Input = forwardRefWithStatics(
         placeholder={placeholder}
         type={renderType}
         className={`${classPrefix}-input__inner`}
-        value={composingRef.current ? composingRefValue : value ?? ''}
+        value={composingRef.current ? composingValue : value ?? ''}
         readOnly={readonly}
         disabled={disabled}
-        autoComplete={autocomplete}
+        autoComplete={autocomplete ?? (local.autocomplete || undefined)}
         autoFocus={autofocus}
         maxLength={maxlength}
         onChange={handleChange}
@@ -173,7 +189,7 @@ const Input = forwardRefWithStatics(
       >
         {prefixIconContent}
         {labelContent ? <div className={`${classPrefix}-input__prefix`}>{labelContent}</div> : null}
-        {renderInput}
+        {showInput && renderInput}
         {autoWidth && (
           <span ref={inputPreRef} className={`${classPrefix}-input__input-pre`}>
             {value || props.placeholder}
@@ -240,7 +256,6 @@ const Input = forwardRefWithStatics(
         composingRef.current = false;
         handleChange(e);
       }
-      setComposingValue('');
       onCompositionend?.(value, { e });
     }
 
@@ -296,7 +311,7 @@ const Input = forwardRefWithStatics(
         ref={wrapperRef}
         style={style}
         className={classNames(`${classPrefix}-input__wrap`, className, {
-          [`${classPrefix}-input--auto-width`]: autoWidth,
+          [`${classPrefix}-input--auto-width`]: autoWidth && !keepWrapperWidth,
         })}
         {...restProps}
       >

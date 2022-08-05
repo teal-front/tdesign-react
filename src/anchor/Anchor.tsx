@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import { StyledProps } from '../common';
 import { TdAnchorProps } from './type';
-import useConfig from '../_util/useConfig';
+import useConfig from '../hooks/useConfig';
 import forwardRefWithStatics from '../_util/forwardRefWithStatics';
 import { canUseDocument, getScrollContainer } from '../_util/dom';
 import Affix from '../affix';
@@ -103,7 +103,7 @@ const Anchor = forwardRefWithStatics(
 
     useEffect(() => {
       // update point style
-      const pointEl = anchorEl.current.querySelector(`.${classPrefix}-is-active>a`) as HTMLAnchorElement;
+      const pointEl = anchorEl.current.querySelector?.(`.${classPrefix}-is-active>a`) as HTMLAnchorElement;
       if (!pointEl) {
         setCursorStyle(null);
       } else {
@@ -118,7 +118,7 @@ const Anchor = forwardRefWithStatics(
       const { items } = intervalRef.current;
       const filters: { top: number; href: string }[] = [];
       let active = '';
-      // 找出所有当前top小于预设值
+      // 找出所有当前 top 小于预设值
       items.forEach((href) => {
         const anchor = getAnchorTarget(href);
         if (!anchor) return;

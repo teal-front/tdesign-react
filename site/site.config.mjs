@@ -37,6 +37,12 @@ export default {
       type: 'doc', // 组件文档
       children: [
         {
+          title: '全局特性配置',
+          name: 'config',
+          path: '/react/config',
+          component: () => import('tdesign-react/config-provider/config-provider.md'),
+        },
+        {
           title: '自定义主题',
           name: 'custom-theme',
           path: '/react/custom-theme',
@@ -62,12 +68,6 @@ export default {
           component: () => import('tdesign-react/button/button.md'),
         },
         {
-          title: 'Divider 分割线',
-          name: 'divider',
-          path: '/react/components/divider',
-          component: () => import('tdesign-react/divider/divider.md'),
-        },
-        {
           title: 'Icon 图标',
           name: 'icon',
           path: '/react/components/icon',
@@ -81,6 +81,12 @@ export default {
       type: 'component', // 组件文档
       children: [
         {
+          title: 'Divider 分割线',
+          name: 'divider',
+          path: '/react/components/divider',
+          component: () => import('tdesign-react/divider/divider.md'),
+        },
+        {
           title: 'Grid 栅格',
           name: 'grid',
           path: '/react/components/grid',
@@ -91,6 +97,12 @@ export default {
           name: 'layout',
           path: '/react/components/layout',
           component: () => import('tdesign-react/layout/layout.md'),
+        },
+        {
+          title: 'Space 间距',
+          name: 'space',
+          path: '/react/components/space',
+          component: () => import('tdesign-react/space/space.md'),
         },
       ],
     },
@@ -122,6 +134,12 @@ export default {
           name: 'dropdown',
           path: '/react/components/dropdown',
           component: () => import('tdesign-react/dropdown/dropdown.md'),
+        },
+        {
+          title: 'Jumper 跳转',
+          name: 'jumper',
+          path: '/react/components/jumper',
+          component: () => import('tdesign-react/jumper/jumper.md'),
         },
         {
           title: 'Menu 导航',
@@ -305,7 +323,7 @@ export default {
           title: 'Card 卡片',
           name: 'card',
           path: '/react/components/card',
-          component: () => import('tdesign-react/card/card.md')
+          component: () => import('tdesign-react/card/card.md'),
         },
         {
           title: 'Collapse 折叠面板',
@@ -378,6 +396,12 @@ export default {
           name: 'watermark',
           path: '/react/components/watermark',
           component: () => import('tdesign-react/watermark/watermark.md'),
+        },
+        {
+          title: 'Rate 评分',
+          name: 'rate',
+          path: '/react/components/rate',
+          component: () => import('tdesign-react/rate/rate.md'),
         },
       ],
     },

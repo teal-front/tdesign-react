@@ -28,11 +28,12 @@ const FormatPanel = (props: TdColorFormatProps) => {
     <div className={`${baseClassName}__format`}>
       <div className={`${baseClassName}__format--item`}>
         <Select
-          size="medium"
+          size="small"
           className={`${baseClassName}__format-mode-select`}
           popupProps={{
             overlayClassName: `${baseClassName}__select-options`,
           }}
+          autoWidth
           value={formatMode}
           onChange={handleModeChange}
         >

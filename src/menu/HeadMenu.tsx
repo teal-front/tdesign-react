@@ -4,14 +4,16 @@ import isObject from 'lodash/isObject';
 import Tabs from '../tabs';
 import { StyledProps } from '../common';
 import { TdHeadMenuProps } from './type';
-import useConfig from '../_util/useConfig';
+import useConfig from '../hooks/useConfig';
 import useMenuContext from './hooks/useMenuContext';
 import { MenuContext } from './MenuContext';
 import checkSubMenuActive from './_util/checkSubMenuActive';
 
 const { TabPanel } = Tabs;
 
-export interface HeadMenuProps extends TdHeadMenuProps, StyledProps {}
+export interface HeadMenuProps extends TdHeadMenuProps, StyledProps {
+  children?: React.ReactNode;
+}
 
 const HeadMenu: FC<HeadMenuProps> = (props) => {
   const { children, className, theme = 'light', style, logo, operations } = props;

@@ -1,13 +1,12 @@
 import React, { forwardRef } from 'react';
 import classNames from 'classnames';
-import dayjs from 'dayjs';
-import useConfig from '../../_util/useConfig';
+import useConfig from '../../hooks/useConfig';
 import { StyledProps } from '../../common';
 import PanelContent from './PanelContent';
 import ExtraContent from './ExtraContent';
 import { TdDatePickerProps, DateValue } from '../type';
 import type { TdTimePickerProps } from '../../time-picker';
-import { getDefaultFormat } from '../hooks/useFormat';
+import { getDefaultFormat, parseToDayjs } from '../hooks/useFormat';
 import useTableData from '../hooks/useTableData';
 import useDisableDate from '../hooks/useDisableDate';
 
@@ -15,11 +14,12 @@ export interface SinglePanelProps extends TdDatePickerProps, StyledProps {
   year?: number;
   month?: number;
   time?: string;
+  popupVisible?: boolean;
   onPanelClick?: (context: { e: React.MouseEvent<HTMLDivElement> }) => void;
   onCellClick?: (date: Date, context: { e: React.MouseEvent<HTMLDivElement> }) => void;
   onCellMouseEnter?: (date: Date) => void;
   onCellMouseLeave?: (context: { e: React.MouseEvent<HTMLDivElement> }) => void;
-  onJumperClick?: (flag: number) => void;
+  onJumperClick?: (context: { e?: MouseEvent; trigger: string }) => void;
   onConfirmClick?: (context: { e: React.MouseEvent<HTMLButtonElement> }) => void;
   onPresetClick?: (
     preset: DateValue | (() => DateValue),
@@ -58,18 +58,20 @@ const SinglePanel = forwardRef<HTMLDivElement, SinglePanelProps>((props, ref) =>
     year,
     month,
     mode,
-    start: value ? dayjs(value, format).toDate() : undefined,
+    start: value ? parseToDayjs(value, format).toDate() : undefined,
     firstDayOfWeek,
     ...disableDateOptions,
   });
 
   const panelContentProps = {
     mode,
+    value,
     year,
     month,
     format,
     firstDayOfWeek,
     tableData,
+    popupVisible: props.popupVisible,
 
     time: props.time,
     timePickerProps: props.timePickerProps,

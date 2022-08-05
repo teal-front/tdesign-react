@@ -8,8 +8,13 @@ import { CalendarController } from '../calendar';
 import { ButtonProps } from '../button';
 import { FormErrorMessage } from '../form';
 import { TNode, TElement } from '../common';
+import { GlobalIconConfig } from 'tdesign-icons-react';
 
 export interface GlobalConfigProvider {
+  /**
+   * icon 全局配置，用来覆盖内置 tdesign-icons
+   */
+  icon?: IconConfig;
   /**
    * 警告全局配置
    */
@@ -110,6 +115,11 @@ export interface GlobalConfigProvider {
 }
 
 export interface InputConfig {
+  /**
+   * 是否开启自动填充功能
+   * @default ''
+   */
+  autocomplete?: string;
   /**
    * 语言配置，“请输入”占位符描述文本
    * @default ''
@@ -404,6 +414,14 @@ export interface DialogConfig {
    */
   cancel?: string | ButtonProps;
   /**
+   * 按下 ESC 时是否触发对话框关闭事件
+   */
+  closeOnEscKeydown?: boolean;
+  /**
+   * 点击蒙层时是否触发关闭事件
+   */
+  closeOnOverlayClick?: boolean;
+  /**
    * 确认按钮风格
    */
   confirm?: string | ButtonProps;
@@ -420,10 +438,23 @@ export interface DrawerConfig {
    */
   cancel?: string | ButtonProps;
   /**
+   * 按下 ESC 时是否触发抽屉关闭事件
+   */
+  closeOnEscKeydown?: boolean;
+  /**
+   * 点击蒙层时是否触发关闭事件
+   */
+  closeOnOverlayClick?: boolean;
+  /**
    * 语言配置，“确认”描述文本
    * @default ''
    */
   confirm?: string | ButtonProps;
+  /**
+   * 尺寸配置，配置Drawer尺寸
+   * @default ''
+   */
+  size?: string;
 }
 
 export interface PopconfirmConfig {
@@ -549,6 +580,10 @@ export interface SelectConfig {
    * @default ''
    */
   empty?: string;
+  /**
+   * 全局配置是否可筛选
+   */
+  filterable?: boolean;
   /**
    * 语言配置，“加载中”描述文本
    * @default ''
@@ -770,3 +805,5 @@ export interface UploadTriggerUploadText {
   continueUpload: string;
   delete?: string;
 }
+
+export type IconConfig = GlobalIconConfig;

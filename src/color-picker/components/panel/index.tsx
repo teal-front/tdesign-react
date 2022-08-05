@@ -17,6 +17,7 @@ import {
 } from '../../const';
 import { ColorPickerProps, TdColorModes, TdColorSaturationData } from '../../interface';
 import { ColorPickerChangeTrigger, TdColorPickerProps } from '../../type';
+import { colorPickerDefaultProps } from '../../defaultProps';
 import LinearGradient from './linear-gradient';
 import SaturationPanel from './saturation';
 import HUESlider from './hue';
@@ -48,6 +49,14 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
   const colorInstanceRef = useRef<Color>(new Color(innerValue || DEFAULT_COLOR));
   const getmodeByColor = colorInstanceRef.current.isGradient ? 'linear-gradient' : 'monochrome';
   const [mode, setMode] = useState<TdColorModes>(colorModes?.length === 1 ? colorModes[0] : getmodeByColor);
+  const [updateId, setUpdateId] = useState(0);
+  const update = useCallback(
+    (value) => {
+      colorInstanceRef.current.update(value);
+      setUpdateId(updateId + 1);
+    },
+    [updateId],
+  );
 
   const formatValue = useCallback(() => {
     // 渐变模式下直接输出css样式
@@ -85,13 +94,10 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
     const isInRightMode = mode === 'monochrome' && !newColor.isGradient;
 
     if (formattedColor !== currentColor && isInRightMode) {
-      colorInstanceRef.current.update(formattedColor);
-      setInnerValue(formatValue(), {
-        color: newColor,
-        trigger: 'input',
-      });
+      update(value);
+      setMode(newColor.isGradient ? 'linear-gradient' : 'monochrome');
     }
-  }, [value, formatValue, setInnerValue, mode]);
+  }, [value, formatValue, setInnerValue, mode, update]);
 
   useEffect(() => {
     if (colorModes.length === 1) {
@@ -104,11 +110,9 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
   const formatRef = useRef<TdColorPickerProps['format']>(colorInstanceRef.current.isGradient ? 'CSS' : 'RGB');
 
   const { onRecentColorsChange } = props;
-  const [recentlyUsedColors, setRecentlyUsedColors] = useControlled<TdColorPickerProps['recentColors'], any>(
-    props,
-    'recentColors',
-    onRecentColorsChange,
-  );
+  const [recentlyUsedColors, setRecentlyUsedColors] = useControlled(props, 'recentColors', onRecentColorsChange, {
+    defaultRecentColors: colorPickerDefaultProps.recentColors,
+  });
 
   const baseProps = {
     color: colorInstanceRef.current,
@@ -125,7 +129,6 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
     }
     colorInstanceRef.current = new Color(rgba);
   };
-
   // 最近使用颜色变更时触发
   const handleRecentlyUsedColorsChange = (colors: string[]) => {
     setRecentlyUsedColors(colors);
@@ -133,9 +136,6 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
 
   // 添加最近使用颜色
   const addRecentlyUsedColor = () => {
-    if (recentlyUsedColors === null || !recentlyUsedColors) {
-      return;
-    }
     const colors = [...((recentlyUsedColors as string[]) || [])];
     const { isGradient, linearGradient, rgba } = colorInstanceRef.current;
     const currentColor = isGradient ? linearGradient : rgba;
@@ -212,6 +212,7 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
         break;
       case 'selectedId':
         colorInstanceRef.current.gradientSelectedId = payload as string;
+        setUpdateId((prevId) => prevId + 1);
         break;
       case 'colors':
         colorInstanceRef.current.gradientColors = payload as GradientColorPoint[];
@@ -225,7 +226,7 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
 
   // format输入变化
   const handleInputChange = (input: string, alpha?: number) => {
-    colorInstanceRef.current.update(input);
+    update(input);
     colorInstanceRef.current.alpha = alpha;
     emitColorChange('input');
   };
@@ -293,6 +294,8 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
     );
   });
 
+  const isGradient = mode === 'linear-gradient';
+
   return (
     <div
       className={classNames(`${baseClassName}__panel`, disabled ? STATUS.disabled : false, className)}
@@ -309,10 +312,23 @@ const Panel = forwardRef((props: ColorPickerProps, ref: MutableRefObject<HTMLDiv
         onModeChange={handleModeChange}
       />
       <div className={`${baseClassName}__body`}>
-        {mode === 'linear-gradient' && <LinearGradient {...baseProps} onChange={handleGradientChange} />}
+        {isGradient && <LinearGradient {...baseProps} onChange={handleGradientChange} />}
         <SaturationPanel {...baseProps} onChange={handleSaturationChange} />
-        <HUESlider {...baseProps} onChange={handleHUEChange} />
-        {enableAlpha && <AlphaSlider {...baseProps} onChange={handleAlphaChange} />}
+        <div className={`${baseClassName}__sliders-wrapper`}>
+          <div className={`${baseClassName}__sliders`}>
+            <HUESlider {...baseProps} onChange={handleHUEChange} />
+            {enableAlpha && <AlphaSlider {...baseProps} onChange={handleAlphaChange} />}
+          </div>
+          <div className={classNames([`${baseClassName}__sliders-preview`, `${baseClassName}--bg-alpha`])}>
+            <span
+              className={`${baseClassName}__sliders-preview-inner`}
+              style={{
+                background: isGradient ? colorInstanceRef.current.linearGradient : colorInstanceRef.current.rgba,
+              }}
+            />
+          </div>
+        </div>
+
         <FormatPanel
           {...props}
           {...baseProps}

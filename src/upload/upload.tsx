@@ -2,12 +2,13 @@ import React, { ChangeEvent, forwardRef, MouseEvent, useCallback, useMemo, useRe
 import isEmpty from 'lodash/isEmpty';
 import lodashUpdate from 'lodash/update';
 import findIndex from 'lodash/findIndex';
+import classNames from 'classnames';
 import Dialog from '../dialog';
 import Dragger from './dragger';
 import UploadTrigger from './upload-trigger';
 import Tips from './tips';
 import request from '../_common/js/upload/xhr';
-import useConfig from '../_util/useConfig';
+import useConfig from '../hooks/useConfig';
 import { useLocaleReceiver } from '../locale/LocalReceiver';
 import SingleFile from './themes/single-file';
 import ImageCard from './themes/image-card';
@@ -19,6 +20,7 @@ import type { ProgressContext, RequestMethodResponse, SuccessContext, UploadFile
 import useControlled from '../hooks/useControlled';
 import useSizeLimit from './hooks/useSizeLimit';
 import { uploadDefaultProps } from './defaultProps';
+import log from '../_common/js/log';
 
 const Upload = forwardRef((props: UploadProps, ref) => {
   const {
@@ -53,7 +55,10 @@ const Upload = forwardRef((props: UploadProps, ref) => {
     onCancelUpload,
     requestMethod,
     customDraggerRender,
+    className,
+    style,
     children,
+    locale: localeFromProps, // 单组件的文案配置 区别于全局的locale
   } = props;
 
   const [fileList, onChange] = useControlled(props, 'files', props.onChange);
@@ -67,6 +72,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [uploading, setUploading] = useState(false);
   const [toUploadFiles, setToUploadFiles] = useState([]); // 等待上传的文件队列
+
   // region img preview dialog
   const showImgDialog = ['image', 'image-flow', 'custom'].includes(theme);
   const [showImg, setShowImg] = useState(false);
@@ -86,7 +92,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
     },
     [onPreview],
   );
-  // endregion
+  // end region
 
   const errorText = t(locale.progress.failText);
 
@@ -217,7 +223,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
         return;
       }
       if (!action && !requestMethod) {
-        console.error('TDesign Upload Error: action or requestMethod is required.');
+        log.error('Upload', 'TDesign Upload Error: action or requestMethod is required.');
         return;
       }
       setErrorMsg('');
@@ -257,17 +263,18 @@ const Upload = forwardRef((props: UploadProps, ref) => {
 
   function handleRequestMethodResponse(res: RequestMethodResponse) {
     if (!res) {
-      console.error('TDesign Upload Error: `requestMethodResponse` is required.');
+      log.error('Upload', 'TDesign Upload Error: `requestMethodResponse` is required.');
       return false;
     }
     if (!res.status) {
-      console.error(
+      log.error(
+        'Upload',
         'TDesign Upload Error: `requestMethodResponse.status` is missing, which value is `success` or `fail`',
       );
       return false;
     }
     if (!['success', 'fail'].includes(res.status)) {
-      console.error('TDesign Upload Error: `requestMethodResponse.status` must be `success` or `fail`');
+      log.error('Upload', 'TDesign Upload Error: `requestMethodResponse.status` must be `success` or `fail`');
       return false;
     }
     if (res.status === 'success' && (!res.response || !res.response.url)) {
@@ -465,7 +472,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
   }));
 
   return (
-    <div className={`${classPrefix}-upload`}>
+    <div className={classNames(`${classPrefix}-upload`, className)} style={style}>
       <input
         ref={uploadRef}
         type="file"
@@ -476,7 +483,9 @@ const Upload = forwardRef((props: UploadProps, ref) => {
         onChange={handleChange}
       />
       <BooleanRender boolExpression={!draggable && theme === 'custom'}>
-        <UploadTrigger onClick={triggerUpload}>{children}</UploadTrigger>
+        <UploadTrigger onClick={triggerUpload} localeFromProps={localeFromProps}>
+          {children}
+        </UploadTrigger>
       </BooleanRender>
       <BooleanRender boolExpression={!draggable && ['file', 'file-input'].includes(theme)}>
         <SingleFile
@@ -486,17 +495,19 @@ const Upload = forwardRef((props: UploadProps, ref) => {
           onRemove={handleSingleRemove}
           showUploadProgress={showUploadProgress}
         >
-          <UploadTrigger onClick={triggerUpload} />
+          <UploadTrigger onClick={triggerUpload} localeFromProps={localeFromProps} />
         </SingleFile>
       </BooleanRender>
       <BooleanRender boolExpression={!draggable && theme === 'image'}>
         <ImageCard
+          disabled={disabled}
           multiple={multiple}
           max={max}
           onRemove={handleMultipleRemove}
           onTrigger={triggerUpload}
           files={fileList}
           showUploadProgress={showUploadProgress}
+          localeFromProps={localeFromProps}
         />
       </BooleanRender>
       <BooleanRender boolExpression={singleDraggable}>
@@ -514,6 +525,7 @@ const Upload = forwardRef((props: UploadProps, ref) => {
             upload(file);
           }}
           onTrigger={triggerUpload}
+          localeFromProps={localeFromProps}
         />
       </BooleanRender>
       <BooleanRender boolExpression={showUploadList}>
@@ -530,8 +542,9 @@ const Upload = forwardRef((props: UploadProps, ref) => {
           onChange={handleDragChange}
           onDragenter={handleDragenter}
           onDragleave={handleDragleave}
+          localeFromProps={localeFromProps}
         >
-          <UploadTrigger onClick={triggerUpload} />
+          <UploadTrigger onClick={triggerUpload} localeFromProps={localeFromProps} />
         </FlowList>
       </BooleanRender>
       <BooleanRender boolExpression={showImgDialog}>

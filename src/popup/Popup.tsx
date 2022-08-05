@@ -16,7 +16,7 @@ import { Placement } from '@popperjs/core';
 import { StyledProps } from '../common';
 import useControlled from '../hooks/useControlled';
 import useAnimation from '../_util/useAnimation';
-import useConfig from '../_util/useConfig';
+import useConfig from '../hooks/useConfig';
 import composeRefs from '../_util/composeRefs';
 import { TdPopupProps } from './type';
 import Portal from '../common/Portal';
@@ -29,7 +29,7 @@ import { popupDefaultProps } from './defaultProps';
 export interface PopupProps extends TdPopupProps, StyledProps {
   // 是否触发展开收起动画，内部下拉式组件使用
   expandAnimation?: boolean;
-  // 初始化popper的可定制option
+  // 初始化 popper 的可定制 option
   popperModifiers?: Array<{ name: string; options: Object }>;
   updateScrollTop?: (content: HTMLDivElement) => void;
 }
@@ -148,6 +148,7 @@ const Popup = forwardRef((props: PopupProps, ref: React.Ref<HTMLDivElement>) => 
     setVisible,
     disabled,
     triggerNodeTemp,
+    content,
   );
 
   // 代理 trigger 的 ref

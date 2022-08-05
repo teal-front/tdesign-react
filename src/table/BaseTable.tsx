@@ -68,6 +68,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
     showAffixPagination,
     onHorizontalScroll,
     setTableContentRef,
+    updateAffixHeaderOrFooter,
   } = useAffix(props);
 
   const { isMultipleHeader, spansAndLeafNodes, thList } = useTableHeader({ columns: props.columns });
@@ -85,6 +86,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
       [tableBaseClass.multipleHeader]: isMultipleHeader,
       [tableColFixedClasses.leftShadow]: showColumnShadow.left,
       [tableColFixedClasses.rightShadow]: showColumnShadow.right,
+      [tableBaseClass.columnResizableTable]: props.resizable,
     }),
   );
 
@@ -115,7 +117,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
 
   const [lastLeafColumns, setLastLeafColumns] = useState(props.columns || []);
   useEffect(() => {
-    if (JSON.stringify(lastLeafColumns) !== JSON.stringify(spansAndLeafNodes.leafColumns)) {
+    if (lastLeafColumns.map((t) => t.colKey).join() !== spansAndLeafNodes.leafColumns.map((t) => t.colKey).join()) {
       props.onLeafColumnsChange?.(spansAndLeafNodes.leafColumns);
       // eslint-disable-next-line react-hooks/exhaustive-deps
       setLastLeafColumns(spansAndLeafNodes.leafColumns);
@@ -133,6 +135,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
   const onFixedChange = () => {
     const timer = setTimeout(() => {
       onHorizontalScroll();
+      updateAffixHeaderOrFooter();
       clearTimeout(timer);
     }, 0);
   };
@@ -157,7 +160,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
   const getTFootHeight = () => {
     if (!tableElmRef.current) return;
     const timer = setTimeout(() => {
-      const height = tableElmRef.current.querySelector('tfoot')?.getBoundingClientRect().height;
+      const height = tableElmRef.current?.querySelector('tfoot')?.getBoundingClientRect().height;
       setTableFootHeight(height);
       clearTimeout(timer);
     });
@@ -201,7 +204,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
   const affixedHeader = Boolean(props.headerAffixedTop && tableWidth) && (
     <div
       ref={affixHeaderRef}
-      style={{ width: `${tableWidth}px`, opacity: headerOpacity }}
+      style={{ width: `${tableWidth - 1}px`, opacity: headerOpacity }}
       className={classNames(['scrollbar', { [tableBaseClass.affixedHeaderElm]: props.headerAffixedTop || isVirtual }])}
     >
       <table className={classNames(tableElmClasses)} style={{ ...tableElementStyles, width: `${tableElmWidth}px` }}>
@@ -260,7 +263,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
             isFixedHeader={isFixedHeader}
             rowAndColFixedPosition={rowAndColFixedPosition}
             footData={props.footData}
-            columns={props.columns}
+            columns={spansAndLeafNodes?.leafColumns || columns}
             rowAttributes={props.rowAttributes}
             rowClassName={props.rowClassName}
             thWidthList={thWidthList}
@@ -282,7 +285,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
     showColumnShadow,
     // data: isVirtual ? visibleData : data,
     data: newData,
-    columns: spansAndLeafNodes.leafColumns,
+    columns: spansAndLeafNodes?.leafColumns || columns,
     tableElm: tableRef.current,
     tableContentElm: tableContentRef.current,
     tableWidth,
@@ -326,7 +329,7 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
           isFixedHeader={isFixedHeader}
           rowAndColFixedPosition={rowAndColFixedPosition}
           footData={props.footData}
-          columns={columns}
+          columns={spansAndLeafNodes?.leafColumns || columns}
           rowAttributes={props.rowAttributes}
           rowClassName={props.rowClassName}
         ></TFoot>
@@ -412,7 +415,13 @@ const BaseTable = forwardRef((props: TBaseTableProps, ref) => {
       )}
 
       {/* 吸底的分页器 */}
-      {props.paginationAffixedBottom ? <Affix offsetBottom={0}>{pagination}</Affix> : pagination}
+      {props.paginationAffixedBottom ? (
+        <Affix offsetBottom={0} {...getAffixProps(props.paginationAffixedBottom)}>
+          {pagination}
+        </Affix>
+      ) : (
+        pagination
+      )}
 
       {/* 调整列宽时的指示线。由于层级需要比较高，因而放在根节点，避免被吸顶表头覆盖。非必要情况，请勿调整辅助线位置 */}
       <div ref={resizeLineRef} className={tableBaseClass.resizeLine} style={resizeLineStyle}></div>
