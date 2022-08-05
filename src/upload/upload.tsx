@@ -428,11 +428,10 @@ const Upload = forwardRef((props: UploadProps, ref) => {
       const { file } = context;
       const index = findIndex(toUploadFiles, (o) => o.name === file.name);
       if (index >= 0) {
-        setToUploadFiles((toUploadFiles) => toUploadFiles.splice(index, 1));
-      } else {
-        const index = findIndex(fileList, (o) => o.name === file.name);
-        handleMultipleRemove({ e: context.e, index });
+        setToUploadFiles(toUploadFiles.filter((_, i) => i !== index));
       }
+      const fileListIndex = findIndex(fileList, (o) => o.name === file.name);
+      handleMultipleRemove({ e: context.e, index: fileListIndex });
     },
     [fileList, handleMultipleRemove, toUploadFiles],
   );
